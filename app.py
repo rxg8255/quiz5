@@ -59,7 +59,9 @@ def users():
                                     return render_template('people.html', people=temp_people, msg=msg)
                         else:
                             temp_people.append(p)
-                            msg = "Range in Grades only"      
+                            msg = "Range in Grades only"
+            if len(temp_people) < 1:
+                return render_template('people.html', msg="no information or picture available")              
         return render_template('people.html', people=temp_people, msg=msg)
     else:
         return render_template('people.html', people=people)

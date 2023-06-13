@@ -44,6 +44,7 @@ def users():
             if p[2] == '':
                 p[2] = 0
             if rangefrom and rangeto:
+                print(p)
                 if int(p[3]) >= int(rangefrom):
                     if int(p[3]) <= int(rangeto):
                         if idrangefrom and idrangeto:

@@ -13,7 +13,7 @@
         <div class="card text-black" style="border-radius: 25px;">
 			</br>
 			<div class="header">
-				<h2 class="word" align="center">People</h2>
+				<h2 class="word" align="center">Earthquake</h2>
 			</div>
 			</br></br>
 			<div class="header">
@@ -22,11 +22,12 @@
 				<form class="col-lg-6 offset-lg-3 " action="{{ url_for('addrecord') }}" method="post" enctype="multipart/form-data">
 				<div class="msg">{{ msg }}</div>
 					<div class="row justify-content-center">
-						<input class="form-control" id="name" name="name" type="text" placeholder="Name" class="textbox"/></br></br>
-						<input class="form-control" id="s_id" name="s_id" type="number" placeholder="Student Id" class="textbox"/></br></br>
-						<input class="form-control" id="grade" name="grade" type="text" placeholder="Grade" class="textbox"/></br></br>
-						<input class="form-control" name="image" type="file" placeholder="image"/></br></br>
-						<textarea class="form-control" id="notes" name="notes" type="text" placeholder="Notes" rows="3"></textarea></br></br>
+						<input class="form-control" id="time" name="time" type="text" placeholder="time" class="textbox"/></br></br>
+						<input class="form-control" id="latitude" name="latitude" type="text" placeholder="latitude" class="textbox"/></br></br>
+						<input class="form-control" id="longitude" name="longitude" type="text" placeholder="longitude" class="textbox"/></br></br>
+						<input class="form-control" id="mag" name="mag" type="text" placeholder="mag" class="textbox"/></br></br>
+						<input class="form-control" id="net" name="net" type="text" placeholder="net" class="textbox"/></br></br>
+						<input class="form-control" id="place" name="place" type="text" placeholder="place" class="textbox"/></br></br>
 
 					<button type="submit" class="btn btn-primary">Add</button></br>
 					</div></form>

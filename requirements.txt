@@ -2,3 +2,4 @@ pyodbc
 flask
 azure-storage-blob
 azure-identity
+pymemcache

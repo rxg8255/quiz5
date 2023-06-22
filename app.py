@@ -4,6 +4,9 @@ import os
 from werkzeug.utils import secure_filename
 import blob_access
 import re
+import time
+import random
+from pymemcache.client import base
 
 app = Flask(__name__)
 app.config['UPLOAD_PATH'] = "./uploads"
@@ -12,24 +15,65 @@ app.secret_key = 'your secret key'
 server = 'cse6332-db-server.database.windows.net'
 username = 'cse6332-user'
 password = 'Test@123'
-database = 'cse6322-quiz2'
+database = 'quiz0'
 driver= '{ODBC Driver 17 for SQL Server}'
+t_q = dict()
 
 conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
 cursor = conn.cursor()
+client = base.Client(('localhost', 11211))
+
 
 @app.route('/')
 @app.route('/earthquakes', methods=['GET', 'POST'])
 def users():
     if request.method == 'POST':
         search = request.form['search']
+        count = request.form['count']
         rangefrom = request.form['rangefrom']
         rangeto = request.form['rangeto']
-        idrangefrom = request.form['idrangefrom']
-        idrangeto = request.form['idrangeto']
-        if len(str(search)) > 0:
-            t_qs = cursor.execute('''SELECT * FROM earthquakes e, (SELECT * FROM earthquakes where time=?) as q 
-            WHERE e.latitude < (q.latitude + 2) AND e.latitude > (q.latitude - 2)''',(search))
+        t_qs = []
+        time_qs = []
+        total_starttime= time.time()
+        for i in range(int(rangefrom), int(rangeto)+1):
+            start_time = time.time()
+
+            if len(count) > 0:
+                rand_t = random.randint(int(rangefrom), int(rangeto)+1)
+                if str(rand_t) in t_q:
+                    t_qs.append(t_q(str(rand_t)))
+                    end_time = time.time()
+                    time_qs.append(end_time-start_time)
+                    continue
+            else:
+                if str(i) in t_q:
+                    t_qs.append(t_q(str(i)))
+                    end_time = time.time()
+                    time_qs.append(end_time-start_time)
+                    continue
+
+            if len(count) > 0:
+                e = cursor.execute("SELECT * FROM earthquakes where time={}".format(rand_t))
+            else:
+                e = cursor.execute("SELECT * FROM earthquakes where time={}".format(i))
+            e = cursor.fetchone()
+            print(e)
+            end_time = time.time()
+            if e:
+                t_q[e[0]] = e
+                t_qs.append(e)
+                time_qs.append(end_time-start_time)
+                if len(count) > 0:
+                    if len(t_qs) == int(count):
+                        break
+        total_endtime = time.time()
+        if len(t_qs) < 1:
+            return render_template('earthquakes.html', msg="no information available", total_exec_time = total_endtime-total_starttime)              
+        return render_template('earthquakes.html', earthquakes=zip(t_qs, time_qs), total_exec_time = total_endtime-total_starttime)
+        
+
+        if len(str(search)) > 0 and len(rangefrom) < 1:
+            t_qs = cursor.execute("SELECT * FROM earthquakes e, (SELECT * FROM earthquakes where time={}) as q WHERE e.latitude < (q.latitude + 2) AND e.latitude > (q.latitude - 2)".format(search))
             return render_template('earthquakes.html', earthquakes=t_qs)
         
         elif len(rangefrom) > 0 and len(rangeto) > 0:
@@ -88,9 +132,9 @@ def users():
     #         return render_template('earthquakes.html', msg="no information or picture available")              
     #     return render_template('earthquakes.html', earthquakes=temp_earthquakes, msg=msg)
     else:
-        cursor.execute('SELECT * FROM earthquakes')
-        earthquakes = cursor.fetchall()
-        return render_template('earthquakes.html', earthquakes=earthquakes)
+        # cursor.execute('SELECT * FROM earthquakes')
+        # earthquakes = cursor.fetchall()
+        return render_template('earthquakes.html')
 
 @app.route('/addrecord', methods=['GET', 'POST'])
 def addrecord():

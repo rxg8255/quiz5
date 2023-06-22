@@ -9,23 +9,21 @@
 </head>
 <body>
 <div class="msg">{{ msg }}</div>
+<div class="msg">Total execution time is - {{ total_exec_time }}</div>
 <div class="container">
     <form class="col-lg-6 offset-lg-3 " action="{{ url_for('users') }}" method="post">
     <div class="row pb-4">
     <div class="col-12">
-        <input class="form-control mr-sm-2" id="search" name="search" type="number" placeholder="Search by time" aria-label="Search" id="searchbox">
+        <input class="form-control mr-sm-2" id="search" name="search" type="text" placeholder="Search by net" aria-label="Search" id="searchbox">
+    </div>
+    <div class="col-12">
+        <input class="form-control mr-sm-2" id="count" name="count" type="text" placeholder="Select count" aria-label="Search" id="searchbox">
     </div>
     <div class="col-6">
-        <input class="form-control mr-sm-2" id="rangefrom" name="rangefrom" type="text" placeholder="Latitude range from" aria-label="Search" id="searchbox">
+        <input class="form-control mr-sm-2" id="rangefrom" name="rangefrom" type="number" placeholder="Time range from" aria-label="Search" id="searchbox">
     </div>
     <div class="col-6">
-        <input class="form-control mr-sm-2" id="rangeto" name="rangeto" type="text" placeholder="Latitude range to" aria-label="Search" id="searchbox">
-    </div>
-    <div class="col-6">
-        <input class="form-control mr-sm-2" id="idrangefrom" name="idrangefrom" type="text" placeholder="Longitude range from" aria-label="Search" id="searchbox">
-    </div>
-    <div class="col-6">
-        <input class="form-control mr-sm-2" id="idrangeto" name="idrangeto" type="text" placeholder="Longitude range to" aria-label="Search" id="searchbox">
+        <input class="form-control mr-sm-2" id="rangeto" name="rangeto" type="number" placeholder="Time range to" aria-label="Search" id="searchbox">
     </div>
 </div>
 <button type="submit" class="btn btn-primary">Search</button></br>
@@ -37,15 +35,16 @@
           <div class="col-4">
       <div class="card" style="width: 18rem;">
   <div class="card-body">
-    <h4 class="card-title">{{earthquake['time']}}
-        <a class="close pull-right" href="/deleterecord/{{earthquake['id']}}"><img src="/static/img/trash-fill.svg"> </a>
-        <a class="close pull-right" href="/updaterecord/{{earthquake['id']}}"><img src="/static/img/pencil-fill.svg"> </a>
+    <h4 class="card-title">{{earthquake[0]['time']}}
+        <a class="close pull-right" href="/deleterecord/{{earthquake[0]['id']}}"><img src="/static/img/trash-fill.svg"> </a>
+        <a class="close pull-right" href="/updaterecord/{{earthquake[0]['id']}}"><img src="/static/img/pencil-fill.svg"> </a>
     </h4>
-      <h6 class="card-subtitle mb-2 text-muted"><b>latitude - </b>{{earthquake['latitude']}}</h6>
-      <h6 class="card-subtitle mb-2 text-muted"><b>longitude - </b>{{earthquake['longitude']}}</h6>
-      <h6 class="card-subtitle mb-2 text-muted"><b>mag - </b>{{earthquake['mag']}}</h6>
-      <h6 class="card-subtitle mb-2 text-muted"><b>net - </b>{{earthquake['net']}}</h6>
-      <h6 class="card-subtitle mb-2 text-muted"><b>place - </b>{{earthquake['place']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>latitude - </b>{{earthquake[0]['latitude']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>longitude - </b>{{earthquake[0]['longitude']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>mag - </b>{{earthquake[0]['mag']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>net - </b>{{earthquake[0]['net']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>place - </b>{{earthquake[0]['place']}}</h6>
+      <h6 class="card-subtitle mb-2 text-muted"><b>Exec time - </b>{{earthquake[1]}}</h6>
   </div></div></div>
           {% endfor %}
       </div>

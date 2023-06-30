@@ -1,14 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 import re
-from nltk.tokenize import sent_tokenize
 import nltk
+from nltk.tokenize import sent_tokenize
 
 app = Flask(__name__)
 app.config['UPLOAD_PATH'] = "./uploads"
 app.secret_key = 'your secret key'
 
-
+nltk.download('punkt')
 @app.route('/')
 @app.route('/earthquakes', methods=['GET', 'POST'])
 def users():

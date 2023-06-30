@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <script src="/static/js/jquery.js" type="text/javascript"></script>
+    <meta charset="UTF-8">
+    <title>QUIZ 5</title>
+</head>
+<body>
+<div class="msg">{{ msg }}</div>
+<div class="container">
+    <form class="col-lg-6 offset-lg-3 " action="{{ url_for('text') }}" method="post">
+    <div class="row pb-4">
+        <div class="col-12">
+            <textarea class="form-control" id="notes" name="notes" type="text" rows="3"></textarea></br></br>
+    </div>
+    <div class="col-12">
+        <input class="form-control mr-sm-2" id="m" name="m" type="text" placeholder="Enter M" aria-label="Search" id="searchbox">
+    </div>
+    <div class="col-12">
+        <input class="form-control mr-sm-2" id="x" name="x" type="text" placeholder="Enter X" aria-label="Search" id="searchbox">
+    </div>
+    <div class="col-12">
+        <input class="form-control mr-sm-2" id="p" name="p" type="text" placeholder="Enter P" aria-label="Search" id="searchbox">
+    </div>
+    <div class="col-12">
+        <input class="form-control mr-sm-2" id="l" name="l" type="text" placeholder="Enter L" aria-label="Search" id="searchbox">
+    </div>
+</div>
+<button type="submit" class="btn btn-primary">Submit</button></br>
+</form>
+</div>
+</body>
+</html>
+{% endblock %}

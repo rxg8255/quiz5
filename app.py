@@ -1,210 +1,81 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import pyodbc
-import os
 from werkzeug.utils import secure_filename
-import blob_access
 import re
-import time
-import random
-from pymemcache.client import base
+from nltk.tokenize import sent_tokenize
+import nltk
 
 app = Flask(__name__)
 app.config['UPLOAD_PATH'] = "./uploads"
 app.secret_key = 'your secret key'
-
-server = 'cse6332-db-server.database.windows.net'
-username = 'cse6332-user'
-password = 'Test@123'
-database = 'quiz0'
-driver= '{ODBC Driver 17 for SQL Server}'
-t_q = dict()
-
-conn = pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
-cursor = conn.cursor()
-client = base.Client(('localhost', 11211))
 
 
 @app.route('/')
 @app.route('/earthquakes', methods=['GET', 'POST'])
 def users():
     if request.method == 'POST':
-        search = request.form['search']
-        count = request.form['count']
-        rangefrom = request.form['rangefrom']
-        rangeto = request.form['rangeto']
-        t_qs = []
-        time_qs = []
-        total_starttime= time.time()
-        for i in range(int(rangefrom), int(rangeto)+1):
-            start_time = time.time()
-
-            if len(count) > 0:
-                rand_t = random.randint(int(rangefrom), int(rangeto)+1)
-                if str(rand_t) in t_q:
-                    t_qs.append(t_q(str(rand_t)))
-                    end_time = time.time()
-                    time_qs.append(end_time-start_time)
-                    continue
+        password = request.form['search']
+        l = request.form['count']
+        iv = request.form['iv']
+        if re.search('[\*/#]', password):
+            return render_template('earthquakes.html', msg="Invalid chars */# present")
+        if len(password) < 20 and len(password) < int(l):
+            return render_template('earthquakes.html', msg="Invalid length lesser than 20 or L")
+        password = password[:20]
+        if re.search('[A-Z]', password):
+            if re.search('[0-9]', password):
+                iv_regex = ".*[" + iv + "].*[" + iv + "].*"
+                if re.search(iv_regex, password):
+                    return render_template('earthquakes.html', msg="Valid")
+                else:
+                    return render_template('earthquakes.html', msg="No chars present from this - {}".format(iv))
             else:
-                if str(i) in t_q:
-                    t_qs.append(t_q(str(i)))
-                    end_time = time.time()
-                    time_qs.append(end_time-start_time)
-                    continue
-
-            if len(count) > 0:
-                e = cursor.execute("SELECT * FROM earthquakes where time={}".format(rand_t))
-            else:
-                e = cursor.execute("SELECT * FROM earthquakes where time={}".format(i))
-            e = cursor.fetchone()
-            print(e)
-            end_time = time.time()
-            if e:
-                t_q[e[0]] = e
-                t_qs.append(e)
-                time_qs.append(end_time-start_time)
-                if len(count) > 0:
-                    if len(t_qs) == int(count):
-                        break
-        total_endtime = time.time()
-        if len(t_qs) < 1:
-            return render_template('earthquakes.html', msg="no information available", total_exec_time = total_endtime-total_starttime)              
-        return render_template('earthquakes.html', earthquakes=zip(t_qs, time_qs), total_exec_time = total_endtime-total_starttime)
-        
-
-        if len(str(search)) > 0 and len(rangefrom) < 1:
-            t_qs = cursor.execute("SELECT * FROM earthquakes e, (SELECT * FROM earthquakes where time={}) as q WHERE e.latitude < (q.latitude + 2) AND e.latitude > (q.latitude - 2)".format(search))
-            return render_template('earthquakes.html', earthquakes=t_qs)
-        
-        elif len(rangefrom) > 0 and len(rangeto) > 0:
-            t_qs = cursor.execute("SELECT * from [dbo].[earthquakes] WHERE latitude <='{}' and latitude>='{}' and longitude<='{}' and longitude>='{}'".format(rangeto,rangefrom,idrangeto,idrangefrom))
-
-            # t_qs = cursor.execute('''SELECT * from [dbo].[earthquakes] WHERE latitude <=? and latitude>=? and longitude<=? and longitude>=?)''',(float(rangeto),float(rangefrom),float(idrangeto),float(idrangefrom)))
-            return render_template('earthquakes.html', earthquakes=t_qs)
-
-        
-        
-        
-        
-        
-        t_eqs = []
-        for p in earthquakes:
-            if p[1] == int(search):
-                t_eqs.append(p)
-        if len(t_eqs) > 0:
-                for t in t_eqs:
-                    for k in earthquakes:
-                        if k[2] < (t[2] + 2) and (k[2] > t[2] -2):
-                            t_eqs.append(k)
-                return render_template('earthquakes.html', earthquakes=t_eqs)
-        return render_template('earthquakes.html', earthquakes=[], msg="No records found")
-              
-        # if rangefrom == '':
-        #     rangefrom = 0
-        # if rangeto == '':
-        #     rangeto = 0
-        # if idrangefrom == '':
-        #     idrangefrom = 0
-        # if idrangeto == '':
-        #     idrangeto = 0
-        # temp_earthquakes = []
-        # for p in earthquakes:
-            # if p[3] == '':
-            #     p[3] = 0
-            # if p[2] == '':
-            #     p[2] = 0
-            # if rangefrom !=0  and rangeto !=0:
-            #     if int(p[3]) >= int(rangefrom):
-            #         if int(p[3]) <= int(rangeto):
-            #             if idrangefrom != 0 and idrangeto != 0:
-            #                 if int(p[2]) >= int(idrangefrom):
-            #                     if int(p[2]) <= int(idrangeto):
-            #                         if search in str(p[5]):
-            #                             temp_earthquakes.append(p)
-            #                             msg = "grades from {} through {} and ids from {} to {} containing the word {}".format(rangefrom, rangeto, idrangefrom, idrangeto, search)
-            #                         # elif len(temp_earthquakes) < 1:
-            #                         #     return render_template('earthquakes.html', msg="no information or picture available")
-                                    # return render_template('earthquakes.html', earthquakes=temp_earthquakes, msg=msg)
-    #                     else:
-    #                         temp_earthquakes.append(p)
-    #                         msg = "Range in Grades only"
-    #     if len(temp_earthquakes) < 1:
-    #         return render_template('earthquakes.html', msg="no information or picture available")              
-    #     return render_template('earthquakes.html', earthquakes=temp_earthquakes, msg=msg)
-    else:
-        # cursor.execute('SELECT * FROM earthquakes')
-        # earthquakes = cursor.fetchall()
-        return render_template('earthquakes.html')
-
-@app.route('/addrecord', methods=['GET', 'POST'])
-def addrecord():
-    msg=''
-    if request.method == 'POST':
-        time = request.form['time']
-        latitude = request.form['latitude']
-        longitude = request.form['longitude']
-        mag = request.form['mag']
-        net = request.form['net']
-        place = request.form['place']
-        sql = ('''
-        SELECT * FROM earthquakes WHERE time=?
-        ''')
-        cursor.execute(sql, (time))
-        account = cursor.fetchone()
-        if account:
-            msg = 'Record already exists'
-        elif not latitude or not longitude or not mag or not net:
-            msg = 'Please fill all details'
+                return render_template('earthquakes.html', msg="No numbers present")
         else:
-            cursor.execute('''INSERT INTO earthquakes (time,latitude,longitude,mag,net,place) 
-                            VALUES (?, ?, ?, ?, ?,?)'''
-                         , (time,latitude,longitude,mag,net,place))
-            cursor.commit()
-            msg = 'You have successfully added !'
-            return render_template('addrecord.html', msg=msg)
-    # elif request.method == 'POST':
-    #     msg = 'Please fill out the form !'
-    return render_template('addrecord.html', msg=msg)
+            return render_template('earthquakes.html', msg="No uppercase chars present")
+    return render_template('earthquakes.html')
 
-# @app.route('/updaterecord/<id>', methods=['GET', 'POST'])
-# def updaterecord(id):
-#     msg=''
-#     cursor.execute('''SELECT * FROM q1c where id=?''', (id))
-#     record = cursor.fetchone()
-#     return render_template('updaterecord.html', person=record)
-
-# @app.route('/rupdate', methods=['GET', 'POST'])
-# def rupdate():
-    msg='Failed to update'
+@app.route('/text', methods=['GET', 'POST'])
+def text():
     if request.method == 'POST':
-        id = request.form['id']
-        name = request.form['name']
-        s_id = request.form['s_id']
-        grade = request.form['grade']
         notes = request.form['notes']
-        if request.files['image']:
-            print('IN')
-            image = request.files['image']
-            filename = filename = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_PATH'], filename))
-            upload_status = blob_access.upload_blob(filename)
-            print(upload_status)
-            if upload_status[0] == 'Success':
-                temp_filename = upload_status[1]
-                picture_url = 'https://cse6332sa.blob.core.windows.net/images/' + temp_filename
-                cursor.execute('''UPDATE q1c SET picture_url=? WHERE id=?''',(picture_url, id))
+        m = request.form['m']
+        x = request.form['x']
+        p = request.form['p']
+        l = request.form['l']
+        word_len_regex = '[A-Za-z]{' + str(int(l)+1) + '}'
+        if re.search(word_len_regex, notes):
+            return render_template('textv.html', msg="Word length is more than {}".format(l))
+        words_len = len(re.findall(r'\w+', notes))
+        if int(m) > words_len:
+            return render_template('textv.html', msg="Words less than {}".format(m))
+        if words_len > int(x):
+            return render_template('textv.html', msg="Words more than {}".format(x))
+        sents = sent_tokenize(notes)
+        for s in sents:
+            if not re.search('^[A-Z].*[?!\.]$', s):
+               return render_template('textv.html', msg="Sentences not begins with uppercase or ends with .?! - {}".format(s)) 
+        if re.search(',', s):
+            parts = s.split(',')
+            for pa in parts:
+                if len(re.findall(r'\w+',pa)) > int(p):
+                  return render_template('textv.html', msg="Part is longer than p - {}".format(pa))   
+        return render_template('textv.html', msg="Valid")
+    return render_template('textv.html')
 
-        cursor.execute("UPDATE q1c SET name='{}', s_id='{}', notes='{}', grade='{}' "
-                     "where id={}".format(name, s_id, notes, grade, id))
-        cursor.commit()
-        msg = 'Record successfully updated !'
-        return redirect('/')
-    return render_template('updaterecord.html', msg=msg)
-
-@app.route('/deleterecord/<id>', methods=['GET', 'POST'])
-def deleterecord(id):
-    msg=''
-    cursor.execute("DELETE FROM q1c where id={}".format(id))
-    cursor.commit()
-    msg = 'Record successfully deleted !'
-    return redirect('/')
+@app.route('/banned', methods=['GET', 'POST'])
+def banned():
+    if request.method == 'POST':
+        notes = request.form['notes']
+        m = request.form['m']
+        b = request.form['b']
+        banned_w = b.split(',')
+        banned_regex = re.compile('|'.join(map(re.escape, banned_w)))
+        words_len = len(re.findall(banned_regex, notes))
+        if words_len > int(m):
+            return render_template('banned.html', msg="Banned words are more than - {}".format(m))
+        else:
+            banned_w = b.split(',')
+            banned_regex = re.compile('|'.join(map(re.escape, banned_w)))
+            cl = banned_regex.sub("", notes)
+            return render_template('banned.html', cl=cl)  
+    return render_template('banned.html', cl="")
